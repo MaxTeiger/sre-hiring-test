@@ -1,0 +1,9 @@
+{
+	"ChallengeName": "NEW_PASSWORD_REQUIRED",
+	"ClientId": "<USERPOOL_CLIENT_ID>",
+	"ChallengeResponses": {
+		"NEW_PASSWORD": "<PASSWORD>",
+		"USERNAME": "<USERNAME>"
+	},
+	"Session": "<SESSION_ID>"
+}

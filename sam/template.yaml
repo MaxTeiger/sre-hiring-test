@@ -1,0 +1,131 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-api-resize
+  SAM Template to deploy an API to resize images
+
+
+Parameters:
+  CognitoUserPoolName:
+    Type: String
+    Default: MyCognitoUserPool
+    Description: Name of the Cognito User Pool to authenticate to the API. Default MyCognitoUserPool.
+  CognitoUserPoolClientName:
+    Type: String
+    Default: MyCognitoUserPoolClientName
+    Description: Name of the Cognito User Pool Client to authenticate to the API. Default MyCognitoUserPoolClientName.
+  CognitoUserPoolDomain:
+    Type: String
+    Default: sreaircalltestdomain
+    Description: Name of the Cognito User Pool Domain to authenticate to the API. Default sreaircalltestdomain.
+
+
+Globals:
+  Function:
+    Timeout: 3
+    Tracing: Active
+  Api:
+    BinaryMediaTypes:
+      - "*~1*"
+    TracingEnabled: True
+    MethodSettings: 
+      - MetricsEnabled: True
+        HttpMethod: "*"
+        ResourcePath: "/*"
+
+Resources:
+
+  S3Bucket: 
+    Type: AWS::S3::Bucket
+    Properties: 
+      AccessControl: PublicRead
+
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors: "'*'"
+      Auth:
+        DefaultAuthorizer: MyCognitoAuthorizer
+        Authorizers:
+          MyCognitoAuthorizer:
+            UserPoolArn: !GetAtt MyCognitoUserPool.Arn
+
+  MyCognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Ref CognitoUserPoolName
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+      UsernameAttributes:
+        - email
+      Schema:
+        - AttributeDataType: String
+          Name: email
+          Required: false
+
+  MyCognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref MyCognitoUserPool
+      ClientName: !Ref CognitoUserPoolClientName
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+  
+  MyCognitoUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties: 
+      UserPoolId: !Ref MyCognitoUserPool
+      Domain: !Ref CognitoUserPoolDomain
+
+  LambdaFunctionOverHttps:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../lambdaFunction/
+      Handler: app.lambdaHandler
+      Runtime: nodejs12.x
+      Architectures:
+        - x86_64
+      Environment: 
+        Variables: 
+          S3_BUCKET: !Ref S3Bucket
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref S3Bucket
+      Events:
+        ResizeImageOperation:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /image
+            Method: post
+    Metadata:
+      BuildMethod: makefile
+
+Outputs:
+  ServerlessRestApiURL:
+    Description: URL to invoke API
+    Value:
+      Fn::Sub:
+      - https://${MyApi}.execute-api.${Region}.amazonaws.com/Prod/image
+      - Region:
+          Ref: AWS::Region
+        MyApi:
+          Ref: MyApi
+  CognitoUserPoolURL:
+    Description: The URL of the provider of the Amazon Cognito user pool
+    Value: !GetAtt MyCognitoUserPool.ProviderURL 
+  CognitoUserPoolClientID:
+    Description: Amazon Cognito user pool client ID
+    Value: !Ref MyCognitoUserPoolClient
+  S3BucketURL: 
+    Description: S3 Bucket Access URL
+    Value:
+      Fn::Sub:
+      - s3://${BucketName}/
+      - BucketName:
+          Ref: S3Bucket
+  

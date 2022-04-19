@@ -1,0 +1,10 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "aircall-test"
+s3_prefix = "aircall-test"
+region = "eu-west-3"
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-bpwrit896pmp"

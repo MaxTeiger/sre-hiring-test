@@ -1,0 +1,1 @@
+{"AuthParameters" : {"USERNAME" : "<USERNAME>", "PASSWORD" : "<PASSWORD>"}, "AuthFlow" : "USER_PASSWORD_AUTH", "ClientId" : "<USER POOL CLIENT ID (output from SAM deploy)>"}

@@ -1,0 +1,11 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "auth-test"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-bpwrit896pmp"
+s3_prefix = "auth-test"
+region = "eu-west-3"
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "CognitoUserPoolName=\"MyCognitoUserPool\" CognitoUserPoolClientName=\"MyCognitoUserPoolClientName\""
+image_repositories = []
