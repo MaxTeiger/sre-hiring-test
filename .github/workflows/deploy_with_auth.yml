@@ -1,4 +1,4 @@
-name: Deploy new infra 
+name: Deploy new infra (with Auth)
 on:
   push:
     branches:
